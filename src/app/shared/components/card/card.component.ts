@@ -1,28 +1,36 @@
 import type { ClassValue } from 'clsx';
 
-import { ChangeDetectionStrategy, Component, computed, input, TemplateRef, ViewEncapsulation } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  input,
+  TemplateRef,
+  ViewEncapsulation,
+} from '@angular/core';
 
 import { mergeClasses } from '@shared/utils/merge-classes';
-import { ZardStringTemplateOutletDirective } from '../core/directives/string-template-outlet/string-template-outlet.directive';
+import { StringTemplateOutletDirective } from '../core/directives/string-template-outlet/string-template-outlet.directive';
 import { cardBodyVariants, cardHeaderVariants, cardVariants } from './card.variants';
 
 @Component({
-  selector: 'z-card',
-  exportAs: 'zCard',
-  standalone: true,
-  imports: [ZardStringTemplateOutletDirective],
+  selector: 'app-card',
+  exportAs: 'appCard',
+  imports: [StringTemplateOutletDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
   template: `
     @if (zTitle()) {
       <div [class]="headerClasses()">
         <div class="text-2xl font-semibold leading-none tracking-tight">
-          <ng-container *zStringTemplateOutlet="zTitle()">{{ zTitle() }}</ng-container>
+          <ng-container *appStringTemplateOutlet="zTitle()">{{ zTitle() }}</ng-container>
         </div>
 
         @if (zDescription()) {
           <div class="text-sm text-muted-foreground">
-            <ng-container *zStringTemplateOutlet="zDescription()">{{ zDescription() }}</ng-container>
+            <ng-container *appStringTemplateOutlet="zDescription()">{{
+              zDescription()
+            }}</ng-container>
           </div>
         }
       </div>
@@ -36,7 +44,7 @@ import { cardBodyVariants, cardHeaderVariants, cardVariants } from './card.varia
     '[class]': 'classes()',
   },
 })
-export class ZardCardComponent {
+export class CardComponent {
   readonly zTitle = input<string | TemplateRef<void>>();
   readonly zDescription = input<string | TemplateRef<void>>();
 

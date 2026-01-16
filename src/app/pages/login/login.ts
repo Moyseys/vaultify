@@ -1,22 +1,15 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { ZardButtonComponent } from '@shared/components/button/button.component';
-import { ZardCardComponent } from '@shared/components/card/card.component';
-import { ZardInputDirective } from '@shared/components/input/input.directive';
+import { ButtonComponent } from '@shared/components/button/button.component';
+import { CardComponent } from '@shared/components/card/card.component';
+import { InputDirective } from '@shared/components/input/input.directive';
 import { AuthService } from 'src/app/core/services/auth.service';
 
 @Component({
   selector: 'app-login',
-  standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    ReactiveFormsModule,
-    ZardButtonComponent,
-    ZardCardComponent,
-    ZardInputDirective,
-    RouterLink,
-  ],
+  imports: [ReactiveFormsModule, ButtonComponent, CardComponent, InputDirective, RouterLink],
   templateUrl: './login.html',
   styleUrl: './login.scss',
 })

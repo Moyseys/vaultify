@@ -54,7 +54,7 @@
   display: flex;
   align-items: center;
 
-  input[z-input] {
+  input[app-input] {
     padding-right: 3rem;
   }
 }
@@ -96,7 +96,7 @@
   font-size: 0.875rem;
 }
 
-input[z-input] {
+input[app-input] {
   width: 100%;
   color: var(--nav-text-white);
   background-color: var(--nav-gray-700);

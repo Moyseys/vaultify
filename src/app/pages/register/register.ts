@@ -9,21 +9,20 @@ import {
 } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 
-import { ZardButtonComponent } from '@shared/components/button/button.component';
-import { ZardCardComponent } from '@shared/components/card/card.component';
-import { ZardInputDirective } from '@shared/components/input/input.directive';
+import { ButtonComponent } from '@shared/components/button/button.component';
+import { CardComponent } from '@shared/components/card/card.component';
+import { InputDirective } from '@shared/components/input/input.directive';
 import { PayloadCreateUser, UsersApi } from 'src/app/core/apis/Users.api';
 
 @Component({
   selector: 'app-register',
-  standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     NgClass,
     ReactiveFormsModule,
-    ZardButtonComponent,
-    ZardCardComponent,
-    ZardInputDirective,
+    ButtonComponent,
+    CardComponent,
+    InputDirective,
     RouterLink,
   ],
   templateUrl: './register.html',
@@ -49,7 +48,7 @@ export class RegisterComponent {
     },
     {
       validators: [this.passwordMatchValidator, this.masterPasswordMatchValidator],
-    }
+    },
   );
 
   loading = false;

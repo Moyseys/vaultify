@@ -1,5 +1,5 @@
 <div class="register-container">
-  <z-card class="register-card">
+  <app-card class="register-card">
     <div class="register-header">
       <h1 class="register-title">Criar conta</h1>
       <p class="register-subtitle">Preencha os dados para cadastrar</p>
@@ -11,17 +11,17 @@
         <input
           id="name"
           type="text"
-          z-input
+          app-input
           formControlName="name"
           placeholder="Digite seu nome"
           [class.error]="name?.invalid && name?.touched"
         />
         @if (name?.invalid && name?.touched) {
-        <div class="error-message">
-          @if (name?.errors?.['required']) {
-          <span>Nome é obrigatório</span>
-          }
-        </div>
+          <div class="error-message">
+            @if (name?.errors?.['required']) {
+              <span>Nome é obrigatório</span>
+            }
+          </div>
         }
       </div>
 
@@ -30,19 +30,20 @@
         <input
           id="email"
           type="email"
-          z-input
+          app-input
           formControlName="email"
           placeholder="Digite seu email"
           [class.error]="email?.invalid && email?.touched"
         />
         @if (email?.invalid && email?.touched) {
-        <div class="error-message">
-          @if (email?.errors?.['required']) {
-          <span>Email é obrigatório</span>
-          } @if (email?.errors?.['email']) {
-          <span>Digite um email válido</span>
-          }
-        </div>
+          <div class="error-message">
+            @if (email?.errors?.['required']) {
+              <span>Email é obrigatório</span>
+            }
+            @if (email?.errors?.['email']) {
+              <span>Digite um email válido</span>
+            }
+          </div>
         }
       </div>
 
@@ -52,7 +53,7 @@
           <input
             id="password"
             [type]="showPassword ? 'text' : 'password'"
-            z-input
+            app-input
             formControlName="password"
             placeholder="Digite sua senha"
             [class.error]="password?.invalid && password?.touched"
@@ -71,13 +72,14 @@
           </button>
         </div>
         @if (password?.invalid && password?.touched) {
-        <div class="error-message">
-          @if (password?.errors?.['required']) {
-          <span>Senha é obrigatória</span>
-          } @if (password?.errors?.['minlength']) {
-          <span>Senha deve ter pelo menos 6 caracteres</span>
-          }
-        </div>
+          <div class="error-message">
+            @if (password?.errors?.['required']) {
+              <span>Senha é obrigatória</span>
+            }
+            @if (password?.errors?.['minlength']) {
+              <span>Senha deve ter pelo menos 6 caracteres</span>
+            }
+          </div>
         }
       </div>
 
@@ -87,7 +89,7 @@
           <input
             id="confirmPassword"
             [type]="showConfirmPassword ? 'text' : 'password'"
-            z-input
+            app-input
             formControlName="confirmPassword"
             placeholder="Confirme sua senha"
             [class.error]="
@@ -108,13 +110,14 @@
           </button>
         </div>
         @if ((confirmPassword?.invalid && confirmPassword?.touched) || hasPasswordMismatch) {
-        <div class="error-message">
-          @if (confirmPassword?.errors?.['required']) {
-          <span>Confirmação de senha é obrigatória</span>
-          } @if (hasPasswordMismatch) {
-          <span>As senhas não coincidem</span>
-          }
-        </div>
+          <div class="error-message">
+            @if (confirmPassword?.errors?.['required']) {
+              <span>Confirmação de senha é obrigatória</span>
+            }
+            @if (hasPasswordMismatch) {
+              <span>As senhas não coincidem</span>
+            }
+          </div>
         }
       </div>
 
@@ -124,7 +127,7 @@
           <input
             id="masterPassword"
             [type]="showMasterPassword ? 'text' : 'password'"
-            z-input
+            app-input
             formControlName="masterPassword"
             placeholder="Digite sua senha mestra"
             [class.error]="masterPassword?.invalid && masterPassword?.touched"
@@ -143,13 +146,14 @@
           </button>
         </div>
         @if (masterPassword?.invalid && masterPassword?.touched) {
-        <div class="error-message">
-          @if (masterPassword?.errors?.['required']) {
-          <span>Senha mestra é obrigatória</span>
-          } @if (masterPassword?.errors?.['minlength']) {
-          <span>Senha mestra deve ter pelo menos 6 caracteres</span>
-          }
-        </div>
+          <div class="error-message">
+            @if (masterPassword?.errors?.['required']) {
+              <span>Senha mestra é obrigatória</span>
+            }
+            @if (masterPassword?.errors?.['minlength']) {
+              <span>Senha mestra deve ter pelo menos 6 caracteres</span>
+            }
+          </div>
         }
       </div>
 
@@ -159,7 +163,7 @@
           <input
             id="confirmMasterPassword"
             [type]="showMasterPassword ? 'text' : 'password'"
-            z-input
+            app-input
             formControlName="confirmMasterPassword"
             placeholder="Confirme sua senha mestra"
             [class.error]="
@@ -180,20 +184,23 @@
             ></i>
           </button>
         </div>
-        @if ((confirmMasterPassword?.invalid && confirmMasterPassword?.touched) ||
-        hasMasterPasswordMismatch) {
-        <div class="error-message">
-          @if (confirmMasterPassword?.errors?.['required']) {
-          <span>Confirmação da senha mestra é obrigatória</span>
-          } @if (hasMasterPasswordMismatch) {
-          <span>As senhas mestras não coincidem</span>
-          }
-        </div>
+        @if (
+          (confirmMasterPassword?.invalid && confirmMasterPassword?.touched) ||
+          hasMasterPasswordMismatch
+        ) {
+          <div class="error-message">
+            @if (confirmMasterPassword?.errors?.['required']) {
+              <span>Confirmação da senha mestra é obrigatória</span>
+            }
+            @if (hasMasterPasswordMismatch) {
+              <span>As senhas mestras não coincidem</span>
+            }
+          </div>
         }
       </div>
 
       <div class="form-actions">
-        <button type="submit" z-button zType="default" zSize="lg" class="register-button">
+        <button type="submit" app-button zType="default" zSize="lg" class="register-button">
           Cadastrar
         </button>
       </div>
@@ -202,5 +209,5 @@
         <a routerLink="/login" class="login-link">Já tem conta? Entrar</a>
       </div>
     </form>
-  </z-card>
+  </app-card>
 </div>

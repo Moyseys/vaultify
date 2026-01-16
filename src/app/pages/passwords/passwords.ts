@@ -3,21 +3,21 @@ import { CommonModule } from '@angular/common';
 import { SecretsApi } from '../../core/apis/Secrets.api';
 import { SecretListInterface } from '../../core/interfaces/secretList.interface';
 import { SecretInterface } from '../../core/interfaces/secret.interface';
-import { PasswordDetailModal } from './password-detail-modal/password-detail-modal';
-import { PasswordCreate } from './password-create/password-create';
 import { PaginationComponent } from 'src/app/core/components/pagination/pagination.component';
 import { ReactiveFormsModule, ɵInternalFormsSharedModule } from '@angular/forms';
 import { PaginationUtils } from 'src/app/core/utils/pagination.util';
+import { ButtonComponent } from '@shared/components/button/button.component';
+import { PasswordFormComponent } from './password-form/password-form';
 
 @Component({
   selector: 'app-passwords',
   imports: [
     CommonModule,
-    PasswordDetailModal,
-    PasswordCreate,
     PaginationComponent,
     ɵInternalFormsSharedModule,
     ReactiveFormsModule,
+    ButtonComponent,
+    PasswordFormComponent,
   ],
   templateUrl: './passwords.html',
   styleUrl: './passwords.scss',
@@ -33,14 +33,12 @@ export class Passwords implements OnInit {
 
   pagination = new PaginationUtils();
 
-  selectedSecret = signal<SecretInterface | null>(null);
-  selectedSecretMaster = signal<string | null>(null);
   isModalOpen = signal(false);
-  isLoadingDetails = signal(false);
-  isCreateFormOpen = signal(false);
+  selectedSecret = signal<SecretInterface | null>(null);
 
-  openCreateForm() {
-    this.isCreateFormOpen.set(true);
+  openCreateModal(): void {
+    this.selectedSecret.set(null);
+    this.isModalOpen.set(true);
   }
 
   ngOnInit() {
@@ -71,49 +69,39 @@ export class Passwords implements OnInit {
     });
   }
 
-  openSecretDetails(secretId: string) {
-    this.isLoadingDetails.set(true);
-    this.isModalOpen.set(true);
+  openSecretDetails(secretId: string): void {
+    this.isLoading.set(true);
 
     const master = window.prompt('Digite sua Master Password para visualizar a senha:');
-    if (master === null) {
-      this.isLoadingDetails.set(false);
-      this.isModalOpen.set(false);
+    if (!master) {
+      this.isLoading.set(false);
       return;
     }
-
-    this.selectedSecretMaster.set(master);
 
     this.secretsApi.getById(secretId, master).subscribe({
       next: (secret) => {
         this.selectedSecret.set(secret);
-        this.isLoadingDetails.set(false);
+        this.isModalOpen.set(true);
+        this.isLoading.set(false);
       },
       error: (err) => {
-        console.error('Error loading secret details:', err);
-        this.isLoadingDetails.set(false);
-        this.closeModal();
+        console.error('Erro ao carregar senha:', err);
+        this.isLoading.set(false);
+        window.alert('Erro ao carregar senha. Verifique sua Master Password.');
       },
     });
   }
 
-  closeModal() {
+  closeModal(): void {
     this.isModalOpen.set(false);
     this.selectedSecret.set(null);
-    this.selectedSecretMaster.set(null);
   }
 
-  onSecretUpdated(secret: SecretInterface) {
-    this.selectedSecret.set(secret);
+  onPasswordSaved(): void {
     this.loadSecrets();
   }
 
-  onSecretDeleted() {
-    this.closeModal();
-    this.loadSecrets();
-  }
-
-  async copyPassword(event: Event, secretId: string) {
+  async copyPassword(event: Event, secretId: string): Promise<void> {
     event.stopPropagation();
 
     const master = window.prompt('Digite sua Master Password para copiar a senha:');
