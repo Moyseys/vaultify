@@ -7,7 +7,7 @@ import { Injectable } from '@angular/core';
 
 @Injectable({ providedIn: 'root' })
 export class SecretsApi extends BaseHttpClientApi {
-  private readonly resource = `${environment.api.url}/pass-api/v1/secrets`;
+  private readonly resource = `${environment.api.url}/vaultify/v1/secrets`;
 
   get(page?: number, size?: number, sort?: string) {
     const params: any = {
@@ -31,7 +31,7 @@ export class SecretsApi extends BaseHttpClientApi {
   update(
     secretId: string,
     data: { title?: string; username?: string; password?: string },
-    masterPassword: string
+    masterPassword: string,
   ) {
     const body = { ...data, masterPassword };
     return this.http.patch<SecretInterface>(`${this.resource}/${secretId}`, body);

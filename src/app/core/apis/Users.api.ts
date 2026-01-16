@@ -13,7 +13,7 @@ export interface PayloadCreateUser {
   providedIn: 'root',
 })
 export class UsersApi extends BaseHttpClientApi {
-  private readonly resource = `${environment.api.url}/pass-api/v1/users`;
+  private readonly resource = `${environment.api.url}/vaultify/v1/users`;
 
   register(payload: PayloadCreateUser) {
     return this.http.post(`${this.resource}`, payload);

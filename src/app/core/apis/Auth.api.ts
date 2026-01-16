@@ -7,7 +7,7 @@ import { Injectable } from '@angular/core';
   providedIn: 'root',
 })
 export class AuthApi extends BaseHttpClientApi {
-  private readonly resource = `${environment.api.url}/pass-api/v1/auth`;
+  private readonly resource = `${environment.api.url}/account/v1/auth`;
 
   login(email: string, password: string) {
     return this.http.post<LoginResponse>(`${this.resource}`, { email, password });
