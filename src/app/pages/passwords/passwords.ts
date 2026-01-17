@@ -8,6 +8,9 @@ import { ReactiveFormsModule, ɵInternalFormsSharedModule } from '@angular/forms
 import { PaginationUtils } from 'src/app/core/utils/pagination.util';
 import { ButtonComponent } from '@shared/components/button/button.component';
 import { PasswordFormComponent } from './password-form/password-form';
+import { MasterPasswordService } from '../../core/services/master-password.service';
+import { MasterPasswordModalComponent } from '../../core/components/master-password-modal/master-password-modal';
+import { ToastService } from '../../core/services/toast.service';
 
 @Component({
   selector: 'app-passwords',
@@ -18,6 +21,7 @@ import { PasswordFormComponent } from './password-form/password-form';
     ReactiveFormsModule,
     ButtonComponent,
     PasswordFormComponent,
+    MasterPasswordModalComponent,
   ],
   templateUrl: './passwords.html',
   styleUrl: './passwords.scss',
@@ -26,6 +30,8 @@ import { PasswordFormComponent } from './password-form/password-form';
 })
 export class Passwords implements OnInit {
   private readonly secretsApi = inject(SecretsApi);
+  readonly masterPasswordService = inject(MasterPasswordService);
+  private readonly toastService = inject(ToastService);
 
   secrets = signal<SecretListInterface[]>([]);
   isLoading = signal(false);
@@ -69,14 +75,13 @@ export class Passwords implements OnInit {
     });
   }
 
-  openSecretDetails(secretId: string): void {
-    this.isLoading.set(true);
-
-    const master = window.prompt('Digite sua Master Password para visualizar a senha:');
+  async openSecretDetails(secretId: string): Promise<void> {
+    const master = await this.masterPasswordService.requestMasterPassword('visualizar a senha');
     if (!master) {
-      this.isLoading.set(false);
       return;
     }
+
+    this.isLoading.set(true);
 
     this.secretsApi.getById(secretId, master).subscribe({
       next: (secret) => {
@@ -87,7 +92,7 @@ export class Passwords implements OnInit {
       error: (err) => {
         console.error('Erro ao carregar senha:', err);
         this.isLoading.set(false);
-        window.alert('Erro ao carregar senha. Verifique sua Master Password.');
+        this.toastService.error('Erro ao carregar senha. Verifique sua Master Password.');
       },
     });
   }
@@ -104,15 +109,15 @@ export class Passwords implements OnInit {
   async copyPassword(event: Event, secretId: string): Promise<void> {
     event.stopPropagation();
 
-    const master = window.prompt('Digite sua Master Password para copiar a senha:');
-    if (master === null) return;
+    const master = await this.masterPasswordService.requestMasterPassword('copiar a senha');
+    if (!master) return;
 
     this.secretsApi.getById(secretId, master).subscribe({
       next: async (secret) => {
         try {
           if (navigator.clipboard && navigator.clipboard.writeText) {
             await navigator.clipboard.writeText(secret.password);
-            alert('Senha copiada!');
+            this.toastService.success('Senha copiada!');
           } else {
             const textarea = document.createElement('textarea');
             textarea.value = secret.password;
@@ -122,15 +127,16 @@ export class Passwords implements OnInit {
             textarea.select();
             document.execCommand('copy');
             document.body.removeChild(textarea);
-            alert('Senha copiada!');
+            this.toastService.success('Senha copiada!');
           }
         } catch (err) {
           console.error('Erro ao copiar senha:', err);
-          alert('Erro ao copiar senha');
+          this.toastService.error('Erro ao copiar senha');
         }
       },
       error: (err) => {
         console.error('Erro ao buscar senha:', err);
+        this.toastService.error('Erro ao buscar senha. Verifique sua Master Password.');
       },
     });
   }
