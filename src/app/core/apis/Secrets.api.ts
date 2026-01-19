@@ -9,12 +9,13 @@ import { Injectable } from '@angular/core';
 export class SecretsApi extends BaseHttpClientApi {
   private readonly resource = `${environment.api.url}/vaultify/v1/secrets`;
 
-  get(page?: number, size?: number, sort?: string) {
+  get(page?: number, size?: number, sort?: string, search?: string) {
     const params: any = {
       sort: sort || 'title,asc',
     };
     if (page !== undefined) params.page = page;
     if (size !== undefined) params.size = size;
+    if (search) params.search = search;
     return this.http.get<Pageable<SecretListInterface>>(this.resource, { params });
   }
 

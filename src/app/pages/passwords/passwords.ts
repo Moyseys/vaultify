@@ -1,4 +1,11 @@
-import { Component, ChangeDetectionStrategy, signal, inject, OnInit } from '@angular/core';
+import {
+  Component,
+  ChangeDetectionStrategy,
+  signal,
+  inject,
+  OnInit,
+  OnDestroy,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SecretsApi } from '../../core/apis/Secrets.api';
 import { SecretListInterface } from '../../core/interfaces/secretList.interface';
@@ -11,6 +18,7 @@ import { PasswordFormComponent } from './password-form/password-form';
 import { MasterPasswordService } from '../../core/services/master-password.service';
 import { MasterPasswordModalComponent } from '../../core/components/master-password-modal/master-password-modal';
 import { ToastService } from '../../core/services/toast.service';
+import { Subject, debounceTime, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-passwords',
@@ -28,7 +36,7 @@ import { ToastService } from '../../core/services/toast.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [SecretsApi],
 })
-export class Passwords implements OnInit {
+export class Passwords implements OnInit, OnDestroy {
   private readonly secretsApi = inject(SecretsApi);
   readonly masterPasswordService = inject(MasterPasswordService);
   private readonly toastService = inject(ToastService);
@@ -36,6 +44,10 @@ export class Passwords implements OnInit {
   secrets = signal<SecretListInterface[]>([]);
   isLoading = signal(false);
   error = signal<string | null>(null);
+  searchTerm = signal('');
+
+  private searchSubject = new Subject<string>();
+  private destroy$ = new Subject<void>();
 
   pagination = new PaginationUtils();
 
@@ -47,7 +59,21 @@ export class Passwords implements OnInit {
     this.isModalOpen.set(true);
   }
 
+  onSearchChange(event: Event): void {
+    const value = (event.target as HTMLInputElement).value;
+    this.searchSubject.next(value);
+  }
+
   ngOnInit() {
+    this.searchSubject
+      .pipe(debounceTime(1000), takeUntil(this.destroy$))
+      .subscribe((searchTerm) => {
+        this.searchTerm.set(searchTerm);
+        const currentPagination = this.pagination.getValue();
+        this.pagination.setValue({ ...currentPagination, page: 1 }, false);
+        this.loadSecrets();
+      });
+
     this.pagination.form.valueChanges.subscribe((pagination) => {
       console.log(pagination);
       if (!pagination) return;
@@ -56,12 +82,18 @@ export class Passwords implements OnInit {
     this.loadSecrets();
   }
 
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   loadSecrets() {
     this.isLoading.set(true);
     this.error.set(null);
 
     const { page, size } = this.pagination.getValue();
-    this.secretsApi.get(page, size, 'title,asc').subscribe({
+    const search = this.searchTerm();
+    this.secretsApi.get(page, size, 'title,asc', search || undefined).subscribe({
       next: (response) => {
         this.pagination.setPeagleableValue(response);
         this.secrets.set(response.items);

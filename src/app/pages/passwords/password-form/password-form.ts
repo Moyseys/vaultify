@@ -11,10 +11,12 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { SecretsApi } from '../../../core/apis/Secrets.api';
 import { SecretInterface } from '../../../core/interfaces/secret.interface';
+import { MasterPasswordService } from '../../../core/services/master-password.service';
+import { MasterPasswordModalComponent } from '../../../core/components/master-password-modal/master-password-modal';
 
 @Component({
   selector: 'app-password-form',
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, MasterPasswordModalComponent],
   templateUrl: './password-form.html',
   styleUrl: './password-form.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -22,6 +24,7 @@ import { SecretInterface } from '../../../core/interfaces/secret.interface';
 export class PasswordFormComponent {
   private readonly fb = inject(FormBuilder);
   private readonly secretsApi = inject(SecretsApi);
+  readonly masterPasswordService = inject(MasterPasswordService);
 
   readonly secret = input<SecretInterface | null>(null);
   readonly close = output<void>();
@@ -91,14 +94,14 @@ export class PasswordFormComponent {
     }
   }
 
-  onSubmit(): void {
+  async onSubmit(): Promise<void> {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
 
-    const master = window.prompt(
-      `Digite sua Master Password para ${this.isEditMode() ? 'salvar' : 'criar'} a senha:`,
+    const master = await this.masterPasswordService.requestMasterPassword(
+      `${this.isEditMode() ? 'salvar' : 'criar'} a senha`,
     );
     if (!master) return;
 
