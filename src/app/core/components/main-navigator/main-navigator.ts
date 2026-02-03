@@ -1,7 +1,7 @@
 import { Component, signal, computed, ChangeDetectionStrategy, inject } from '@angular/core';
-import { RouterOutlet, RouterLink, RouterLinkActive, Router } from '@angular/router';
-import { CookieService } from '../../services/cookie.service';
-import { environment } from 'src/environments/environment';
+import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
+import { AuthService } from '../../services/auth.service';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-main-navigator',
@@ -11,7 +11,8 @@ import { environment } from 'src/environments/environment';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MainNavigator {
-  private readonly router = inject(Router);
+  private readonly authService = inject(AuthService);
+  private readonly toastService = inject(ToastService);
   private readonly _isSidebarOpen = signal(false);
   private readonly _appTitle = signal('Pass Manager');
 
@@ -32,7 +33,13 @@ export class MainNavigator {
   }
 
   logout(): void {
-    CookieService.deleteCookie(environment.cookies.token);
-    this.router.navigate(['/login']);
+    this.authService.logout().subscribe({
+      next: () => {
+        this.toastService.success('Logout realizado com sucesso');
+      },
+      error: () => {
+        this.toastService.error('Falha ao fazer logout');
+      },
+    });
   }
 }

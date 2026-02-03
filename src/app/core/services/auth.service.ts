@@ -1,14 +1,13 @@
-import { inject, Injectable } from '@angular/core';
-import { environment } from 'src/environments/environment';
-import { CookieService } from './cookie.service';
-import { ActivatedRoute } from '@angular/router';
+import { inject, Injectable, signal } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { BaseHttpClientApi } from '../apis/base-http-client.api';
 import { AuthApi } from '../apis/Auth.api';
+import { Observable, of } from 'rxjs';
+import { tap, catchError } from 'rxjs/operators';
 
 export interface LoginResponse {
   name: string;
   email: string;
-  token: string;
 }
 
 @Injectable({
@@ -16,34 +15,59 @@ export interface LoginResponse {
 })
 export class AuthService extends BaseHttpClientApi {
   private readonly activeRoute = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly authApi = inject(AuthApi);
 
-  public token: null | string = null;
+  private readonly authState = signal<boolean>(false);
+  private readonly authCheckDone = signal<boolean>(false);
+  readonly isLoggedIn = this.authState.asReadonly();
+  readonly isAuthCheckDone = this.authCheckDone.asReadonly();
 
-  get redirectUrl() {
+  constructor() {
+    super();
+    this.initializeAuthStatus();
+  }
+  private initializeAuthStatus(): void {
+    this.authApi
+      .checkAuth()
+      .pipe(
+        tap(() => {
+          this.authState.set(true);
+          this.authCheckDone.set(true);
+        }),
+        catchError(() => {
+          this.authState.set(false);
+          this.authCheckDone.set(true);
+          return of(null);
+        }),
+      )
+      .subscribe();
+  }
+
+  get redirectUrl(): string {
     return this.activeRoute.snapshot.queryParams['redirect'] || '/';
   }
 
-  get isLogged() {
-    if (this.token) return true;
-    const cookieToken = CookieService.getCookie(environment.cookies.token);
-    if (cookieToken) {
-      this.token = cookieToken;
-      return true;
-    }
-
-    return false;
+  checkAuthStatus(): Observable<any> {
+    return this.authApi.checkAuth().pipe(
+      tap(() => this.authState.set(true)),
+      catchError(() => {
+        this.authState.set(false);
+        return of(null);
+      }),
+    );
   }
 
-  login(email: string, password: string) {
-    this.authApi.login(email, password).subscribe({
-      next: (res: LoginResponse) => {
-        const dateExpires = new Date(Date.now());
-        dateExpires.setHours(dateExpires.getHours() + 1);
-        CookieService.setCookie(environment.cookies.token, res.token, dateExpires.toUTCString());
-        this.token = res.token;
-        window.location.href = this.redirectUrl;
-      },
-    });
+  login(email: string, password: string): Observable<LoginResponse> {
+    return this.authApi.login(email, password).pipe(tap(() => this.authState.set(true)));
+  }
+
+  logout(): Observable<void> {
+    return this.authApi.logout().pipe(
+      tap(() => {
+        this.authState.set(false);
+        this.router.navigate(['/login']);
+      }),
+    );
   }
 }

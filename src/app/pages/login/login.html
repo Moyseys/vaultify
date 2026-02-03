@@ -93,8 +93,15 @@
       </div>
 
       <div class="form-actions">
-        <button type="submit" app-button zType="default" zSize="lg" class="login-button">
-          Entrar
+        <button
+          type="submit"
+          app-button
+          zType="default"
+          zSize="lg"
+          class="login-button"
+          [disabled]="isLoading()"
+        >
+          {{ isLoading() ? 'Entrando...' : 'Entrar' }}
         </button>
       </div>
 
