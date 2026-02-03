@@ -35,9 +35,10 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
           break;
 
         case 401:
-          // Unauthorized - httpOnly cookie expired or invalid
-          // Skip error message if this is an auth check request
-          if (req.headers.get('X-Skip-Auth-Error') !== 'true') {
+          const currentUrl = router.url;
+          const isInApp = !currentUrl.includes('/login') && !currentUrl.includes('/register');
+
+          if (isInApp) {
             toastService.warning('Sua sessão expirou. Faça login novamente.');
             router.navigate(['/login']);
           }
@@ -45,10 +46,6 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
 
         case 403:
           errorMessage = apiError?.detail || 'Você não tem permissão para acessar este recurso.';
-          toastService.error(errorMessage);
-          break;
-
-        case 404:
           toastService.error(errorMessage);
           break;
 
@@ -61,7 +58,6 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
           break;
 
         default:
-          toastService.error(errorMessage);
           break;
       }
 

@@ -39,23 +39,136 @@
           Segurança
         </h2>
         <div class="settings__section-content">
-          <div class="settings__item">
-            <label class="settings__label">Timeout de sessão</label>
-            <select class="settings__select">
-              <option value="15">15 minutos</option>
-              <option value="30">30 minutos</option>
-              <option value="60">1 hora</option>
-              <option value="never">Nunca</option>
-            </select>
-          </div>
-
-          <div class="settings__item">
-            <div class="settings__toggle">
-              <input type="checkbox" id="two-factor" class="settings__checkbox" />
-              <label for="two-factor" class="settings__toggle-label">
-                Autenticação de dois fatores
+          <!-- Secret Key -->
+          <div class="settings__item settings__item--secret-key">
+            <div class="settings__item-header">
+              <label class="settings__label">
+                <i class="lucide icon-key" aria-hidden="true"></i>
+                Secret Key
               </label>
+              @if (checkingSecretKey()) {
+                <span class="settings__status settings__status--checking">Verificando...</span>
+              } @else if (hasSecretKey()) {
+                <span class="settings__status settings__status--configured">
+                  <i class="lucide icon-check-circle" aria-hidden="true"></i>
+                  Configurado
+                </span>
+              } @else {
+                <span class="settings__status settings__status--missing">
+                  <i class="lucide icon-alert-circle" aria-hidden="true"></i>
+                  Não configurado
+                </span>
+              }
             </div>
+            <p class="settings__description">
+              O Secret Key é usado para criptografar suas senhas. Guarde-o em local seguro.
+            </p>
+
+            @if (!hasSecretKey()) {
+              <form
+                [formGroup]="secretKeyForm"
+                (ngSubmit)="onSubmitSecretKey()"
+                class="settings__form"
+              >
+                <div class="form-group">
+                  <label for="secretKey" class="form-label">Digite seu Secret Key</label>
+                  <div class="input-with-icon">
+                    <input
+                      id="secretKey"
+                      [type]="showSecretKey() ? 'text' : 'password'"
+                      app-input
+                      formControlName="secretKey"
+                      placeholder="Digite um Secret Key seguro"
+                      [class.error]="
+                        secretKeyForm.get('secretKey')?.invalid &&
+                        secretKeyForm.get('secretKey')?.touched
+                      "
+                    />
+                    <button
+                      type="button"
+                      class="password-toggle-btn"
+                      (click)="toggleSecretKeyVisibility()"
+                      aria-label="Mostrar/ocultar secret key"
+                    >
+                      <i
+                        class="lucide"
+                        [ngClass]="showSecretKey() ? 'icon-eye-off' : 'icon-eye'"
+                        aria-hidden="true"
+                      ></i>
+                    </button>
+                  </div>
+                  @if (
+                    secretKeyForm.get('secretKey')?.invalid &&
+                    secretKeyForm.get('secretKey')?.touched
+                  ) {
+                    <div class="error-message">
+                      @if (secretKeyForm.get('secretKey')?.errors?.['required']) {
+                        <span>Secret Key é obrigatório</span>
+                      }
+                      @if (secretKeyForm.get('secretKey')?.errors?.['minlength']) {
+                        <span>Secret Key deve ter pelo menos 6 caracteres</span>
+                      }
+                    </div>
+                  }
+                </div>
+
+                <div class="form-group">
+                  <label for="confirmSecretKey" class="form-label">Confirme seu Secret Key</label>
+                  <div class="input-with-icon">
+                    <input
+                      id="confirmSecretKey"
+                      [type]="showConfirmSecretKey() ? 'text' : 'password'"
+                      app-input
+                      formControlName="confirmSecretKey"
+                      placeholder="Digite o Secret Key novamente"
+                      [class.error]="
+                        (secretKeyForm.get('confirmSecretKey')?.invalid &&
+                          secretKeyForm.get('confirmSecretKey')?.touched) ||
+                        hasSecretKeyMismatch
+                      "
+                    />
+                    <button
+                      type="button"
+                      class="password-toggle-btn"
+                      (click)="toggleConfirmSecretKeyVisibility()"
+                      aria-label="Mostrar/ocultar confirmação do secret key"
+                    >
+                      <i
+                        class="lucide"
+                        [ngClass]="showConfirmSecretKey() ? 'icon-eye-off' : 'icon-eye'"
+                        aria-hidden="true"
+                      ></i>
+                    </button>
+                  </div>
+                  @if (
+                    (secretKeyForm.get('confirmSecretKey')?.invalid &&
+                      secretKeyForm.get('confirmSecretKey')?.touched) ||
+                    hasSecretKeyMismatch
+                  ) {
+                    <div class="error-message">
+                      @if (secretKeyForm.get('confirmSecretKey')?.errors?.['required']) {
+                        <span>Confirmação do Secret Key é obrigatória</span>
+                      }
+                      @if (hasSecretKeyMismatch) {
+                        <span>Os Secret Keys não coincidem</span>
+                      }
+                    </div>
+                  }
+                </div>
+
+                <div class="settings__form-actions">
+                  <button
+                    type="submit"
+                    app-button
+                    zType="default"
+                    zSize="default"
+                    [disabled]="creatingSecretKey()"
+                  >
+                    {{ creatingSecretKey() ? 'Salvando...' : 'Salvar Secret Key' }}
+                  </button>
+                </div>
+              </form>
+            }
           </div>
         </div>
       </div>

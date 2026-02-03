@@ -48,9 +48,21 @@ export class LoginComponent {
       const password = this.loginForm.value.password!;
 
       this.authService.login(email, password).subscribe({
-        next: () => {
+        next: (result) => {
+          this.isLoading.set(false);
           this.toastService.success('Login realizado com sucesso');
-          this.router.navigateByUrl(this.redirectUrl);
+
+          if (!result.hasSecretKey) {
+            this.router.navigate(['/settings'], {
+              queryParams: { createSecretKey: true },
+            });
+            this.toastService.show(
+              'Configure seu Secret Key para poder cadastrar seus segredos com maior segurança',
+              'warning',
+            );
+          } else {
+            this.router.navigateByUrl(this.redirectUrl);
+          }
         },
         error: (error) => {
           this.isLoading.set(false);
