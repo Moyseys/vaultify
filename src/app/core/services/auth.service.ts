@@ -5,6 +5,7 @@ import { AuthApi } from '../apis/Auth.api';
 import { SecretKeyApi } from '../apis/SecretKey.api';
 import { Observable, of } from 'rxjs';
 import { tap, catchError, switchMap } from 'rxjs/operators';
+import { SecretService } from './secret.service';
 
 export interface LoginResponse {
   name: string;
@@ -23,7 +24,7 @@ export class AuthService extends BaseHttpClientApi {
   private readonly activeRoute = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly authApi = inject(AuthApi);
-  private readonly secretKeyApi = inject(SecretKeyApi);
+  private readonly secretService = inject(SecretService);
 
   private readonly authState = signal<boolean>(false);
   private readonly authCheckDone = signal<boolean>(false);
@@ -65,34 +66,15 @@ export class AuthService extends BaseHttpClientApi {
     );
   }
 
-  login(email: string, password: string): Observable<LoginWithSecretKeyCheck> {
-    return this.authApi.login(email, password).pipe(
-      tap(() => this.authState.set(true)),
-      switchMap((user) => {
-        return this.secretKeyApi.checkSecretKeyExists().pipe(
-          tap((response) => {
-            if (!response.exists) {
-              console.warn('User does not have a secret key configured');
-            }
-          }),
-          catchError(() => {
-            return of({ exists: false });
-          }),
-          switchMap((secretKeyResponse) => {
-            return of({
-              user,
-              hasSecretKey: secretKeyResponse.exists,
-            });
-          }),
-        );
-      }),
-    );
+  login(email: string, password: string) {
+    return this.authApi.login(email, password).pipe(tap(() => this.authState.set(true)));
   }
 
   logout(): Observable<void> {
     return this.authApi.logout().pipe(
       tap(() => {
         this.authState.set(false);
+        this.secretService.clearMasterPassword();
         this.router.navigate(['/login']);
       }),
     );

@@ -19,23 +19,16 @@ export class SecretsApi extends BaseHttpClientApi {
     return this.http.get<Pageable<SecretListInterface>>(this.resource, { params });
   }
 
-  create(data: { title: string; username: string; password: string }, masterPassword: string) {
-    const body = { ...data, masterPassword };
-    return this.http.post(this.resource, body);
+  create(data: SecretInterface) {
+    return this.http.post(this.resource, { ...data });
   }
 
-  getById(secretId: string, masterPassword: string) {
-    const body = { masterPassword };
-    return this.http.post<SecretInterface>(`${this.resource}/${secretId}`, body);
+  getById(secretId: string) {
+    return this.http.get<SecretInterface>(`${this.resource}/${secretId}`);
   }
 
-  update(
-    secretId: string,
-    data: { title?: string; username?: string; password?: string },
-    masterPassword: string,
-  ) {
-    const body = { ...data, masterPassword };
-    return this.http.patch<SecretInterface>(`${this.resource}/${secretId}`, body);
+  update(secretId: string, data: SecretInterface) {
+    return this.http.patch<SecretInterface>(`${this.resource}/${secretId}`, { ...data });
   }
 
   delete(secretId: string) {

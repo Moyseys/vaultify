@@ -11,7 +11,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
-      let errorMessage = 'Ocorreu um erro inesperado. Tente novamente.';
+      let errorMessage = 'An unexpected error occurred. Please try again.';
       let apiError: Partial<ApiErrorResponse> | null = null;
 
       if (error.error && typeof error.error === 'object') {
@@ -26,7 +26,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
 
       switch (error.status) {
         case 0:
-          errorMessage = 'Não foi possível conectar ao servidor. Verifique sua conexão.';
+          errorMessage = 'Unable to connect to server. Please check your connection.';
           toastService.error(errorMessage);
           break;
 
@@ -39,13 +39,13 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
           const isInApp = !currentUrl.includes('/login') && !currentUrl.includes('/register');
 
           if (isInApp) {
-            toastService.warning('Sua sessão expirou. Faça login novamente.');
+            toastService.warning('Your session has expired. Please log in again.');
             router.navigate(['/login']);
           }
           break;
 
         case 403:
-          errorMessage = apiError?.detail || 'Você não tem permissão para acessar este recurso.';
+          errorMessage = apiError?.detail || 'You do not have permission to access this resource.';
           toastService.error(errorMessage);
           break;
 
@@ -53,7 +53,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
         case 502:
         case 503:
         case 504:
-          errorMessage = apiError?.detail || 'Erro no servidor. Tente novamente mais tarde.';
+          errorMessage = apiError?.detail || 'Server error. Please try again later.';
           toastService.error(errorMessage);
           break;
 

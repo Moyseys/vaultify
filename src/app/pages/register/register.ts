@@ -84,7 +84,7 @@ export class RegisterComponent {
         next: () => {
           this.loading.set(false);
           this.toastService.show('Conta criada com sucesso!', 'success');
-          this.router.navigate(['/login']);
+          this.router.navigate(['/login'], { queryParams: { firstAccess: true } });
         },
         error: (err: any) => {
           this.loading.set(false);

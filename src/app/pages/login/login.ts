@@ -46,29 +46,19 @@ export class LoginComponent {
       this.isLoading.set(true);
       const email = this.loginForm.value.email!;
       const password = this.loginForm.value.password!;
-
       this.authService.login(email, password).subscribe({
         next: (result) => {
           this.isLoading.set(false);
           this.toastService.success('Login realizado com sucesso');
 
-          if (!result.hasSecretKey) {
-            this.router.navigate(['/settings'], {
-              queryParams: { createSecretKey: true },
-            });
-            this.toastService.show(
-              'Configure seu Secret Key para poder cadastrar seus segredos com maior segurança',
-              'warning',
-            );
+          if (this.route.snapshot.queryParams['firstAccess']) {
+            this.router.navigateByUrl('/settings');
+            this.toastService.warning('Please create a secret key to proceed.');
           } else {
             this.router.navigateByUrl(this.redirectUrl);
           }
         },
-        error: (error) => {
-          this.isLoading.set(false);
-          this.toastService.error(error?.error?.message || 'Falha ao fazer login');
-          this.loginForm.reset();
-        },
+        error: (error) => this.isLoading.set(false),
       });
     } else {
       this.loginForm.markAllAsTouched();

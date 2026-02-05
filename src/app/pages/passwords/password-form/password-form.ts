@@ -13,6 +13,15 @@ import { SecretsApi } from '../../../core/apis/Secrets.api';
 import { SecretInterface } from '../../../core/interfaces/secret.interface';
 import { MasterPasswordService } from '../../../core/services/master-password.service';
 import { MasterPasswordModalComponent } from '../../../core/components/master-password-modal/master-password-modal';
+import { SecretService } from '../../../core/services/secret.service';
+import { ToastService } from 'src/app/core/services/toast.service';
+import { IncorrectPasswordError } from '../../../core/services/crypto.service';
+
+export interface FormPayload {
+  title: string;
+  username: string;
+  password: string;
+}
 
 @Component({
   selector: 'app-password-form',
@@ -24,7 +33,9 @@ import { MasterPasswordModalComponent } from '../../../core/components/master-pa
 export class PasswordFormComponent {
   private readonly fb = inject(FormBuilder);
   private readonly secretsApi = inject(SecretsApi);
+  private readonly secretService = inject(SecretService);
   readonly masterPasswordService = inject(MasterPasswordService);
+  readonly toastService = inject(ToastService);
 
   readonly secret = input<SecretInterface | null>(null);
   readonly close = output<void>();
@@ -50,7 +61,7 @@ export class PasswordFormComponent {
           this.form.patchValue({
             title: secretValue.title,
             username: secretValue.username,
-            password: secretValue.password,
+            password: secretValue.cipherPassword,
           });
         } else {
           this.isEditMode.set(false);
@@ -97,64 +108,103 @@ export class PasswordFormComponent {
   async onSubmit(): Promise<void> {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
+      this.toastService.error('Please fill in all fields correctly.');
       return;
     }
 
-    const master = await this.masterPasswordService.requestMasterPassword(
-      `${this.isEditMode() ? 'salvar' : 'criar'} a senha`,
-    );
-    if (!master) return;
+    try {
+      const master = await this.masterPasswordService.requestMasterPassword(
+        `${this.isEditMode() ? 'salvar' : 'criar'} a senha`,
+      );
+      if (!master) return;
 
-    this.isSaving.set(true);
+      this.isSaving.set(true);
 
-    const formValue = this.form.value;
-    const payload = {
-      title: formValue.title!,
-      username: formValue.username!,
-      password: formValue.password!,
-    };
+      const { title, username, password } = this.form.value;
+      const payload: FormPayload = {
+        title: title!,
+        username: username!,
+        password: password!,
+      };
 
-    const operation = this.isEditMode()
-      ? this.secretsApi.update(this.secret()!.id, payload, master)
-      : this.secretsApi.create(payload, master);
+      if (this.isEditMode()) await this.updateSecret(payload, master);
+      else await this.createSecret(payload, master);
+    } catch (error) {
+      this.isSaving.set(false);
+      this.toastService.error('Unexpected error. Please try again.');
+    }
+  }
 
-    operation.subscribe({
+  private async createSecret(payload: FormPayload, masterPassword: string) {
+    this.secretService.create(payload, masterPassword).subscribe({
       next: () => {
         this.isSaving.set(false);
+        this.toastService.success('Password created successfully!');
         this.saved.emit();
         this.close.emit();
       },
       error: (err) => {
-        console.error('Erro ao salvar senha:', err);
         this.isSaving.set(false);
-        window.alert('Erro ao salvar senha. Verifique sua Master Password e tente novamente.');
+        this.handleError(err);
       },
     });
+  }
+
+  private async updateSecret(payload: FormPayload, masterPassword: string) {
+    const secretId = this.secret()?.id;
+    if (!secretId) return;
+    this.secretService.update(secretId, payload, masterPassword).subscribe({
+      next: () => {
+        this.isSaving.set(false);
+        this.toastService.success('Password updated successfully!');
+        this.saved.emit();
+        this.close.emit();
+      },
+      error: (err) => {
+        console.error('Erro ao atualizar senha:', err);
+        this.isSaving.set(false);
+        this.handleError(err);
+      },
+    });
+  }
+
+  private handleError(error: any): void {
+    if (error instanceof IncorrectPasswordError || error?.name === IncorrectPasswordError.name) {
+      this.toastService.error('Incorrect Master Password.');
+      return;
+    }
+
+    const errorMessage = error?.message || '';
+    if (error.status === 404) {
+      this.toastService.error('You need to set up your master key first. Go to settings.');
+      return;
+    }
   }
 
   onDelete(): void {
     if (!this.isEditMode() || !this.secret()) return;
 
+    const secretTitle = this.form.value.title || 'esta senha';
     const confirmed = window.confirm(
-      `Tem certeza que deseja excluir "${this.form.value.title}"? Esta ação não pode ser desfeita.`,
+      `Tem certeza que deseja excluir "${secretTitle}"?\n\nEsta ação não pode ser desfeita.`,
     );
 
     if (!confirmed) return;
 
     this.isSaving.set(true);
 
-    this.secretsApi.delete(this.secret()!.id).subscribe({
-      next: () => {
-        this.isSaving.set(false);
-        this.saved.emit();
-        this.close.emit();
-      },
-      error: (err) => {
-        console.error('Erro ao excluir senha:', err);
-        this.isSaving.set(false);
-        window.alert('Erro ao excluir senha. Tente novamente.');
-      },
-    });
+    // this.secretsApi.delete(this.secret()!.id).subscribe({
+    //   next: () => {
+    //     this.isSaving.set(false);
+    //     this.saved.emit();
+    //     this.close.emit();
+    //   },
+    //   error: (err) => {
+    //     console.error('Erro ao excluir senha:', err);
+    //     this.isSaving.set(false);
+    //     window.alert('Erro ao excluir senha. Tente novamente.');
+    //   },
+    // });
   }
 
   get title() {

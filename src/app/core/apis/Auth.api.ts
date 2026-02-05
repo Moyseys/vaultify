@@ -20,12 +20,8 @@ export class AuthApi extends BaseHttpClientApi {
   }
 
   checkAuth() {
-    debugger;
     return this.http.get(`${this.resource}/check`, {
       withCredentials: true,
-      headers: {
-        'X-Skip-Auth-Error': 'true',
-      },
     });
   }
 

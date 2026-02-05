@@ -19,6 +19,8 @@ import { MasterPasswordService } from '../../core/services/master-password.servi
 import { MasterPasswordModalComponent } from '../../core/components/master-password-modal/master-password-modal';
 import { ToastService } from '../../core/services/toast.service';
 import { Subject, debounceTime, takeUntil } from 'rxjs';
+import { SecretService } from 'src/app/core/services/secret.service';
+import { IncorrectPasswordError } from 'src/app/core/services/crypto.service';
 
 @Component({
   selector: 'app-passwords',
@@ -37,7 +39,7 @@ import { Subject, debounceTime, takeUntil } from 'rxjs';
   providers: [SecretsApi],
 })
 export class Passwords implements OnInit, OnDestroy {
-  private readonly secretsApi = inject(SecretsApi);
+  private readonly secretsService = inject(SecretService);
   readonly masterPasswordService = inject(MasterPasswordService);
   private readonly toastService = inject(ToastService);
 
@@ -93,7 +95,7 @@ export class Passwords implements OnInit, OnDestroy {
 
     const { page, size } = this.pagination.getValue();
     const search = this.searchTerm();
-    this.secretsApi.get(page, size, 'title,asc', search || undefined).subscribe({
+    this.secretsService.listSecrets(page, size, 'title,asc', search || undefined).subscribe({
       next: (response) => {
         this.pagination.setPeagleableValue(response);
         this.secrets.set(response.items);
@@ -108,23 +110,33 @@ export class Passwords implements OnInit, OnDestroy {
   }
 
   async openSecretDetails(secretId: string): Promise<void> {
-    const master = await this.masterPasswordService.requestMasterPassword('visualizar a senha');
+    let master = this.secretsService.getMasterPassword();
+
     if (!master) {
-      return;
+      master = await this.masterPasswordService.requestMasterPassword('visualizar a senha');
+      if (!master) return;
     }
 
-    this.isLoading.set(true);
-
-    this.secretsApi.getById(secretId, master).subscribe({
+    this.secretsService.getById(secretId, master).subscribe({
       next: (secret) => {
         this.selectedSecret.set(secret);
         this.isModalOpen.set(true);
-        this.isLoading.set(false);
       },
-      error: (err) => {
-        console.error('Erro ao carregar senha:', err);
-        this.isLoading.set(false);
-        this.toastService.error('Erro ao carregar senha. Verifique sua Master Password.');
+      error: (error) => {
+        if (
+          error instanceof IncorrectPasswordError ||
+          error?.name === IncorrectPasswordError.name
+        ) {
+          this.secretsService.clearMasterPassword();
+          this.toastService.error('Incorrect Master Password.');
+          return;
+        }
+
+        const errorMessage = error?.message || '';
+        if (error.status === 404) {
+          this.toastService.error('You need to set up your master key first. Go to settings.');
+          return;
+        }
       },
     });
   }
@@ -136,40 +148,5 @@ export class Passwords implements OnInit, OnDestroy {
 
   onPasswordSaved(): void {
     this.loadSecrets();
-  }
-
-  async copyPassword(event: Event, secretId: string): Promise<void> {
-    event.stopPropagation();
-
-    const master = await this.masterPasswordService.requestMasterPassword('copiar a senha');
-    if (!master) return;
-
-    this.secretsApi.getById(secretId, master).subscribe({
-      next: async (secret) => {
-        try {
-          if (navigator.clipboard && navigator.clipboard.writeText) {
-            await navigator.clipboard.writeText(secret.password);
-            this.toastService.success('Senha copiada!');
-          } else {
-            const textarea = document.createElement('textarea');
-            textarea.value = secret.password;
-            textarea.style.position = 'fixed';
-            textarea.style.opacity = '0';
-            document.body.appendChild(textarea);
-            textarea.select();
-            document.execCommand('copy');
-            document.body.removeChild(textarea);
-            this.toastService.success('Senha copiada!');
-          }
-        } catch (err) {
-          console.error('Erro ao copiar senha:', err);
-          this.toastService.error('Erro ao copiar senha');
-        }
-      },
-      error: (err) => {
-        console.error('Erro ao buscar senha:', err);
-        this.toastService.error('Erro ao buscar senha. Verifique sua Master Password.');
-      },
-    });
   }
 }

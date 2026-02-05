@@ -4,12 +4,16 @@ import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { BaseHttpClientApi } from './base-http-client.api';
 
-export interface CreateSecretKeyPayload {
+export interface SecretKeyPayload {
   key: string;
-}
-
-export interface SecretKeyExistsResponse {
-  exists: boolean;
+  keySize: number;
+  keyIV: string;
+  salt: string;
+  saltSize: number;
+  iterations: number;
+  algorithm: string;
+  hashAlgorithm: string;
+  derivationAlgorithm: string;
 }
 
 @Injectable({
@@ -18,11 +22,11 @@ export interface SecretKeyExistsResponse {
 export class SecretKeyApi extends BaseHttpClientApi {
   private readonly resource = `${environment.api.url}/vaultify/v1/secret-key`;
 
-  createSecretKey(payload: CreateSecretKeyPayload): Observable<void> {
+  createSecretKey(payload: SecretKeyPayload): Observable<void> {
     return this.http.post<void>(this.resource, payload);
   }
 
-  checkSecretKeyExists(): Observable<SecretKeyExistsResponse> {
-    return this.http.get<SecretKeyExistsResponse>(this.resource);
+  checkSecretKeyExists(): Observable<SecretKeyPayload> {
+    return this.http.get<SecretKeyPayload>(this.resource);
   }
 }
