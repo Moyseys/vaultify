@@ -98,10 +98,10 @@ export class PasswordFormComponent {
 
     try {
       await navigator.clipboard.writeText(text);
-      this.copyMessage.set(`${field} copiado!`);
+      this.copyMessage.set(`${field} copied!`);
       setTimeout(() => this.copyMessage.set(null), 2000);
     } catch (err) {
-      console.error('Erro ao copiar:', err);
+      console.error('Error copying:', err);
     }
   }
 
@@ -114,7 +114,7 @@ export class PasswordFormComponent {
 
     try {
       const master = await this.masterPasswordService.requestMasterPassword(
-        `${this.isEditMode() ? 'salvar' : 'criar'} a senha`,
+        `${this.isEditMode() ? 'save' : 'create'} the password`,
       );
       if (!master) return;
 
@@ -161,7 +161,7 @@ export class PasswordFormComponent {
         this.close.emit();
       },
       error: (err) => {
-        console.error('Erro ao atualizar senha:', err);
+        console.error('Error updating password:', err);
         this.isSaving.set(false);
         this.handleError(err);
       },
@@ -184,9 +184,9 @@ export class PasswordFormComponent {
   onDelete(): void {
     if (!this.isEditMode() || !this.secret()) return;
 
-    const secretTitle = this.form.value.title || 'esta senha';
+    const secretTitle = this.form.value.title || 'this password';
     const confirmed = window.confirm(
-      `Tem certeza que deseja excluir "${secretTitle}"?\n\nEsta ação não pode ser desfeita.`,
+      `Are you sure you want to delete "${secretTitle}"?\n\nThis action cannot be undone.`,
     );
 
     if (!confirmed) return;

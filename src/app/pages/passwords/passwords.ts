@@ -102,7 +102,7 @@ export class Passwords implements OnInit, OnDestroy {
         this.isLoading.set(false);
       },
       error: (err) => {
-        this.error.set('Erro ao carregar senhas');
+        this.error.set('Error loading passwords');
         this.isLoading.set(false);
         console.error('Error loading secrets:', err);
       },
@@ -113,7 +113,7 @@ export class Passwords implements OnInit, OnDestroy {
     let master = this.secretsService.getMasterPassword();
 
     if (!master) {
-      master = await this.masterPasswordService.requestMasterPassword('visualizar a senha');
+      master = await this.masterPasswordService.requestMasterPassword('view the password');
       if (!master) return;
     }
 

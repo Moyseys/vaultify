@@ -49,7 +49,7 @@ export class LoginComponent {
       this.authService.login(email, password).subscribe({
         next: (result) => {
           this.isLoading.set(false);
-          this.toastService.success('Login realizado com sucesso');
+          this.toastService.success('Login successful');
 
           if (this.route.snapshot.queryParams['firstAccess']) {
             this.router.navigateByUrl('/settings');

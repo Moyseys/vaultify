@@ -1,25 +1,25 @@
 <div class="register-container">
   <app-card class="register-card">
     <div class="register-header">
-      <h1 class="register-title">Criar conta</h1>
-      <p class="register-subtitle">Preencha os dados para cadastrar</p>
+      <h1 class="register-title">Create account</h1>
+      <p class="register-subtitle">Fill in the data to register</p>
     </div>
 
     <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="register-form">
       <div class="form-group">
-        <label for="name" class="form-label">Nome</label>
+        <label for="name" class="form-label">Name</label>
         <input
           id="name"
           type="text"
           app-input
           formControlName="name"
-          placeholder="Digite seu nome"
+          placeholder="Enter your name"
           [class.error]="name?.invalid && name?.touched"
         />
         @if (name?.invalid && name?.touched) {
           <div class="error-message">
             @if (name?.errors?.['required']) {
-              <span>Nome é obrigatório</span>
+              <span>Name is required</span>
             }
           </div>
         }
@@ -32,37 +32,37 @@
           type="email"
           app-input
           formControlName="email"
-          placeholder="Digite seu email"
+          placeholder="Enter your email"
           [class.error]="email?.invalid && email?.touched"
         />
         @if (email?.invalid && email?.touched) {
           <div class="error-message">
             @if (email?.errors?.['required']) {
-              <span>Email é obrigatório</span>
+              <span>Email is required</span>
             }
             @if (email?.errors?.['email']) {
-              <span>Digite um email válido</span>
+              <span>Enter a valid email</span>
             }
           </div>
         }
       </div>
 
       <div class="form-group">
-        <label for="password" class="form-label">Senha</label>
+        <label for="password" class="form-label">Password</label>
         <div class="input-with-icon">
           <input
             id="password"
             [type]="showPassword() ? 'text' : 'password'"
             app-input
             formControlName="password"
-            placeholder="Digite sua senha"
+            placeholder="Enter your password"
             [class.error]="password?.invalid && password?.touched"
           />
           <button
             type="button"
             class="password-toggle-btn"
             (click)="togglePasswordVisibility()"
-            aria-label="Mostrar/ocultar senha"
+            aria-label="Show/hide password"
           >
             <i
               class="lucide"
@@ -74,24 +74,24 @@
         @if (password?.invalid && password?.touched) {
           <div class="error-message">
             @if (password?.errors?.['required']) {
-              <span>Senha é obrigatória</span>
+              <span>Password is required</span>
             }
             @if (password?.errors?.['minlength']) {
-              <span>Senha deve ter pelo menos 6 caracteres</span>
+              <span>Password must be at least 6 characters</span>
             }
           </div>
         }
       </div>
 
       <div class="form-group">
-        <label for="confirmPassword" class="form-label">Confirmar Senha</label>
+        <label for="confirmPassword" class="form-label">Confirm Password</label>
         <div class="input-with-icon">
           <input
             id="confirmPassword"
             [type]="showConfirmPassword() ? 'text' : 'password'"
             app-input
             formControlName="confirmPassword"
-            placeholder="Confirme sua senha"
+            placeholder="Confirm your password"
             [class.error]="
               (confirmPassword?.invalid && confirmPassword?.touched) || hasPasswordMismatch
             "
@@ -100,7 +100,7 @@
             type="button"
             class="password-toggle-btn"
             (click)="toggleConfirmPasswordVisibility()"
-            aria-label="Mostrar/ocultar confirmação de senha"
+            aria-label="Show/hide password confirmation"
           >
             <i
               class="lucide"
@@ -112,10 +112,10 @@
         @if ((confirmPassword?.invalid && confirmPassword?.touched) || hasPasswordMismatch) {
           <div class="error-message">
             @if (confirmPassword?.errors?.['required']) {
-              <span>Confirmação de senha é obrigatória</span>
+              <span>Password confirmation is required</span>
             }
             @if (hasPasswordMismatch) {
-              <span>As senhas não coincidem</span>
+              <span>Passwords do not match</span>
             }
           </div>
         }
@@ -130,12 +130,12 @@
           class="register-button"
           [disabled]="loading()"
         >
-          {{ loading() ? 'Criando conta...' : 'Cadastrar' }}
+          {{ loading() ? 'Creating account...' : 'Register' }}
         </button>
       </div>
 
       <div class="register-footer">
-        <a routerLink="/login" class="login-link">Já tem conta? Entrar</a>
+        <a routerLink="/login" class="login-link">Already have an account? Login</a>
       </div>
     </form>
   </app-card>

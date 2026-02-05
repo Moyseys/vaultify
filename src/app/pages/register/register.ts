@@ -83,14 +83,14 @@ export class RegisterComponent {
       this.usersApi.register(this.formValue).subscribe({
         next: () => {
           this.loading.set(false);
-          this.toastService.show('Conta criada com sucesso!', 'success');
+          this.toastService.show('Account created successfully!', 'success');
           this.router.navigate(['/login'], { queryParams: { firstAccess: true } });
         },
         error: (err: any) => {
           this.loading.set(false);
-          let errorMsg = err?.error?.message || 'Erro ao cadastrar';
+          let errorMsg = err?.error?.message || 'Registration error';
 
-          if (err.status === 409) errorMsg = 'Email já cadastrado';
+          if (err.status === 409) errorMsg = 'Email already registered';
 
           this.toastService.show(errorMsg, 'error');
         },

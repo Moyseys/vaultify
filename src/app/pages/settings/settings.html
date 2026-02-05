@@ -1,7 +1,7 @@
 <div class="settings">
   <div class="settings__header">
-    <h1 class="settings__title">Configurações</h1>
-    <p class="settings__subtitle">Configure suas preferências e segurança</p>
+    <h1 class="settings__title">Settings</h1>
+    <p class="settings__subtitle">Configure your preferences and security</p>
   </div>
 
   <div class="settings__content">
@@ -10,20 +10,20 @@
       <div class="settings__section">
         <h2 class="settings__section-title">
           <i class="lucide icon-user" aria-hidden="true"></i>
-          Geral
+          General
         </h2>
         <div class="settings__section-content">
           <div class="settings__item">
-            <label class="settings__label">Tema</label>
+            <label class="settings__label">Theme</label>
             <select class="settings__select">
-              <option value="light">Claro</option>
-              <option value="dark">Escuro</option>
-              <option value="auto">Automático</option>
+              <option value="light">Light</option>
+              <option value="dark">Dark</option>
+              <option value="auto">Automatic</option>
             </select>
           </div>
 
           <div class="settings__item">
-            <label class="settings__label">Idioma</label>
+            <label class="settings__label">Language</label>
             <select class="settings__select">
               <option value="pt-BR">Português (Brasil)</option>
               <option value="en-US">English (US)</option>
@@ -36,7 +36,7 @@
       <div class="settings__section">
         <h2 class="settings__section-title">
           <i class="lucide icon-shield" aria-hidden="true"></i>
-          Segurança
+          Security
         </h2>
         <div class="settings__section-content">
           <!-- Secret Key -->
@@ -47,21 +47,21 @@
                 Secret Key
               </label>
               @if (checkingSecretKey()) {
-                <span class="settings__status settings__status--checking">Verificando...</span>
+                <span class="settings__status settings__status--checking">Checking...</span>
               } @else if (hasSecretKey()) {
                 <span class="settings__status settings__status--configured">
                   <i class="lucide icon-check-circle" aria-hidden="true"></i>
-                  Configurado
+                  Configured
                 </span>
               } @else {
                 <span class="settings__status settings__status--missing">
                   <i class="lucide icon-alert-circle" aria-hidden="true"></i>
-                  Não configurado
+                  Not configured
                 </span>
               }
             </div>
             <p class="settings__description">
-              O Secret Key é usado para criptografar suas senhas. Guarde-o em local seguro.
+              The Secret Key is used to encrypt your passwords. Keep it in a safe place.
             </p>
 
             @if (!hasSecretKey()) {
@@ -71,14 +71,14 @@
                 class="settings__form"
               >
                 <div class="form-group">
-                  <label for="secretKey" class="form-label">Digite seu Secret Key</label>
+                  <label for="secretKey" class="form-label">Enter your Secret Key</label>
                   <div class="input-with-icon">
                     <input
                       id="secretKey"
                       [type]="showSecretKey() ? 'text' : 'password'"
                       app-input
                       formControlName="secretKey"
-                      placeholder="Digite um Secret Key seguro"
+                      placeholder="Enter a secure Secret Key"
                       [class.error]="
                         secretKeyForm.get('secretKey')?.invalid &&
                         secretKeyForm.get('secretKey')?.touched
@@ -88,7 +88,7 @@
                       type="button"
                       class="password-toggle-btn"
                       (click)="toggleSecretKeyVisibility()"
-                      aria-label="Mostrar/ocultar secret key"
+                      aria-label="Show/hide secret key"
                     >
                       <i
                         class="lucide"
@@ -103,24 +103,24 @@
                   ) {
                     <div class="error-message">
                       @if (secretKeyForm.get('secretKey')?.errors?.['required']) {
-                        <span>Secret Key é obrigatório</span>
+                        <span>Secret Key is required</span>
                       }
                       @if (secretKeyForm.get('secretKey')?.errors?.['minlength']) {
-                        <span>Secret Key deve ter pelo menos 6 caracteres</span>
+                        <span>Secret Key must be at least 6 characters</span>
                       }
                     </div>
                   }
                 </div>
 
                 <div class="form-group">
-                  <label for="confirmSecretKey" class="form-label">Confirme seu Secret Key</label>
+                  <label for="confirmSecretKey" class="form-label">Confirm your Secret Key</label>
                   <div class="input-with-icon">
                     <input
                       id="confirmSecretKey"
                       [type]="showConfirmSecretKey() ? 'text' : 'password'"
                       app-input
                       formControlName="confirmSecretKey"
-                      placeholder="Digite o Secret Key novamente"
+                      placeholder="Enter the Secret Key again"
                       [class.error]="
                         (secretKeyForm.get('confirmSecretKey')?.invalid &&
                           secretKeyForm.get('confirmSecretKey')?.touched) ||
@@ -131,7 +131,7 @@
                       type="button"
                       class="password-toggle-btn"
                       (click)="toggleConfirmSecretKeyVisibility()"
-                      aria-label="Mostrar/ocultar confirmação do secret key"
+                      aria-label="Show/hide secret key confirmation"
                     >
                       <i
                         class="lucide"
@@ -147,10 +147,10 @@
                   ) {
                     <div class="error-message">
                       @if (secretKeyForm.get('confirmSecretKey')?.errors?.['required']) {
-                        <span>Confirmação do Secret Key é obrigatória</span>
+                        <span>Secret Key confirmation is required</span>
                       }
                       @if (hasSecretKeyMismatch) {
-                        <span>Os Secret Keys não coincidem</span>
+                        <span>Secret Keys do not match</span>
                       }
                     </div>
                   }
@@ -164,7 +164,7 @@
                     zSize="default"
                     [disabled]="creatingSecretKey()"
                   >
-                    {{ creatingSecretKey() ? 'Salvando...' : 'Salvar Secret Key' }}
+                    {{ creatingSecretKey() ? 'Saving...' : 'Save Secret Key' }}
                   </button>
                 </div>
               </form>
@@ -177,24 +177,24 @@
       <div class="settings__section">
         <h2 class="settings__section-title">
           <i class="lucide icon-database" aria-hidden="true"></i>
-          Backup e Sincronização
+          Backup and Synchronization
         </h2>
         <div class="settings__section-content">
           <div class="settings__item">
             <div class="settings__toggle">
               <input type="checkbox" id="auto-backup" class="settings__checkbox" />
-              <label for="auto-backup" class="settings__toggle-label"> Backup automático </label>
+              <label for="auto-backup" class="settings__toggle-label"> Automatic backup </label>
             </div>
           </div>
 
           <div class="settings__actions">
             <button class="settings__btn settings__btn--secondary">
               <i class="lucide icon-download" aria-hidden="true"></i>
-              Exportar Dados
+              Export Data
             </button>
             <button class="settings__btn settings__btn--secondary">
               <i class="lucide icon-upload" aria-hidden="true"></i>
-              Importar Dados
+              Import Data
             </button>
           </div>
         </div>

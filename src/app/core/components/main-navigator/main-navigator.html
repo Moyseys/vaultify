@@ -5,13 +5,13 @@
       <button
         class="header__menu-btn"
         (click)="toggleSidebar()"
-        [attr.aria-label]="isSidebarOpen() ? 'Fechar sidebar' : 'Abrir sidebar'"
+        [attr.aria-label]="isSidebarOpen() ? 'Close sidebar' : 'Open sidebar'"
       >
         <i class="lucide icon-menu" aria-hidden="true"></i>
       </button>
       <h1 class="header__title">{{ appTitle() }}</h1>
       <div class="header__actions">
-        <button class="header__logout-btn" (click)="logout()" title="Sair">
+        <button class="header__logout-btn" (click)="logout()" title="Logout">
           <i class="lucide icon-log-out" aria-hidden="true"></i>
         </button>
       </div>
@@ -48,7 +48,7 @@
             (click)="closeSidebar()"
           >
             <i class="lucide icon-key" aria-hidden="true"></i>
-            Senhas
+            Passwords
           </a>
         </li>
         <li class="sidebar__item">
@@ -59,7 +59,7 @@
             (click)="closeSidebar()"
           >
             <i class="lucide icon-settings" aria-hidden="true"></i>
-            Configurações
+            Settings
           </a>
         </li>
       </ul>
@@ -68,7 +68,7 @@
 
   <!-- Overlay para fechar sidebar em mobile -->
   @if (isSidebarOpen()) {
-  <div class="sidebar__overlay" (click)="closeSidebar()" aria-hidden="true"></div>
+    <div class="sidebar__overlay" (click)="closeSidebar()" aria-hidden="true"></div>
   }
 
   <!-- Main Content Area -->
