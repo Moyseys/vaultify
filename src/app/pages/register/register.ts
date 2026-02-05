@@ -14,6 +14,8 @@ import { CardComponent } from '@shared/components/card/card.component';
 import { InputDirective } from '@shared/components/input/input.directive';
 import { PayloadCreateUser, UsersApi } from 'src/app/core/apis/Users.api';
 import { ToastService } from 'src/app/core/services/toast.service';
+import { AnalyticsService } from 'src/app/core/services/analytics.service';
+import { AnalyticsEvent } from 'src/app/core/interfaces/analytics.interface';
 
 @Component({
   selector: 'app-register',
@@ -34,6 +36,7 @@ export class RegisterComponent {
   private readonly router = inject(Router);
   private readonly usersApi = inject(UsersApi);
   private readonly toastService = inject(ToastService);
+  private readonly analyticsService = inject(AnalyticsService);
 
   showPassword = signal(false);
   showConfirmPassword = signal(false);
@@ -84,6 +87,9 @@ export class RegisterComponent {
         next: () => {
           this.loading.set(false);
           this.toastService.show('Account created successfully!', 'success');
+          this.analyticsService.trackEvent(AnalyticsEvent.REGISTER_SUCCESS, {
+            email: this.formValue.email,
+          });
           this.router.navigate(['/login'], { queryParams: { firstAccess: true } });
         },
         error: (err: any) => {
@@ -92,6 +98,7 @@ export class RegisterComponent {
 
           if (err.status === 409) errorMsg = 'Email already registered';
 
+          this.analyticsService.trackEvent(AnalyticsEvent.REGISTER_FAILED);
           this.toastService.show(errorMsg, 'error');
         },
       });

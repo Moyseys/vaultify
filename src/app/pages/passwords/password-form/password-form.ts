@@ -16,6 +16,8 @@ import { MasterPasswordModalComponent } from '../../../core/components/master-pa
 import { SecretService } from '../../../core/services/secret.service';
 import { ToastService } from 'src/app/core/services/toast.service';
 import { IncorrectPasswordError } from '../../../core/services/crypto.service';
+import { AnalyticsService } from '../../../core/services/analytics.service';
+import { AnalyticsEvent } from '../../../core/interfaces/analytics.interface';
 
 export interface FormPayload {
   title: string;
@@ -36,6 +38,7 @@ export class PasswordFormComponent {
   private readonly secretService = inject(SecretService);
   readonly masterPasswordService = inject(MasterPasswordService);
   readonly toastService = inject(ToastService);
+  private readonly analyticsService = inject(AnalyticsService);
 
   readonly secret = input<SecretInterface | null>(null);
   readonly close = output<void>();
@@ -140,6 +143,9 @@ export class PasswordFormComponent {
       next: () => {
         this.isSaving.set(false);
         this.toastService.success('Password created successfully!');
+        this.analyticsService.trackEvent(AnalyticsEvent.PASSWORD_CREATED, {
+          title: payload.title,
+        });
         this.saved.emit();
         this.close.emit();
       },
@@ -157,6 +163,9 @@ export class PasswordFormComponent {
       next: () => {
         this.isSaving.set(false);
         this.toastService.success('Password updated successfully!');
+        this.analyticsService.trackEvent(AnalyticsEvent.PASSWORD_UPDATED, {
+          title: payload.title,
+        });
         this.saved.emit();
         this.close.emit();
       },

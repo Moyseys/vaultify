@@ -6,6 +6,8 @@ import { CardComponent } from '@shared/components/card/card.component';
 import { InputDirective } from '@shared/components/input/input.directive';
 import { AuthService } from 'src/app/core/services/auth.service';
 import { ToastService } from 'src/app/core/services/toast.service';
+import { AnalyticsService } from 'src/app/core/services/analytics.service';
+import { AnalyticsEvent } from 'src/app/core/interfaces/analytics.interface';
 
 @Component({
   selector: 'app-login',
@@ -20,6 +22,7 @@ export class LoginComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly toastService = inject(ToastService);
+  private readonly analyticsService = inject(AnalyticsService);
 
   readonly showPassword = signal(false);
   readonly isLoading = signal(false);
@@ -50,6 +53,9 @@ export class LoginComponent {
         next: (result) => {
           this.isLoading.set(false);
           this.toastService.success('Login successful');
+          this.analyticsService.trackEvent(AnalyticsEvent.LOGIN_SUCCESS, {
+            email: email,
+          });
 
           if (this.route.snapshot.queryParams['firstAccess']) {
             this.router.navigateByUrl('/settings');
@@ -58,7 +64,10 @@ export class LoginComponent {
             this.router.navigateByUrl(this.redirectUrl);
           }
         },
-        error: (error) => this.isLoading.set(false),
+        error: (error) => {
+          this.isLoading.set(false);
+          this.analyticsService.trackEvent(AnalyticsEvent.LOGIN_FAILED);
+        },
       });
     } else {
       this.loginForm.markAllAsTouched();
