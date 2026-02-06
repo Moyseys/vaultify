@@ -202,18 +202,20 @@ export class PasswordFormComponent {
 
     this.isSaving.set(true);
 
-    // this.secretsApi.delete(this.secret()!.id).subscribe({
-    //   next: () => {
-    //     this.isSaving.set(false);
-    //     this.saved.emit();
-    //     this.close.emit();
-    //   },
-    //   error: (err) => {
-    //     console.error('Erro ao excluir senha:', err);
-    //     this.isSaving.set(false);
-    //     window.alert('Erro ao excluir senha. Tente novamente.');
-    //   },
-    // });
+    const secretId = this.secret()?.id;
+    if (!secretId) return;
+    this.secretsApi.delete(secretId).subscribe({
+      next: () => {
+        this.isSaving.set(false);
+        this.saved.emit();
+        this.close.emit();
+      },
+      error: (err) => {
+        console.error('Erro ao excluir senha:', err);
+        this.isSaving.set(false);
+        window.alert('Erro ao excluir senha. Tente novamente.');
+      },
+    });
   }
 
   get title() {
