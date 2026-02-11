@@ -6,6 +6,7 @@ import { SecretKeyApi } from '../apis/SecretKey.api';
 import { Observable, of } from 'rxjs';
 import { tap, catchError, switchMap } from 'rxjs/operators';
 import { SecretService } from './secret.service';
+import { MasterPasswordService } from './master-password.service';
 
 export interface LoginResponse {
   name: string;
@@ -24,8 +25,7 @@ export class AuthService extends BaseHttpClientApi {
   private readonly activeRoute = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly authApi = inject(AuthApi);
-  private readonly secretService = inject(SecretService);
-
+  private readonly masterPasswordService = inject(MasterPasswordService);
   private readonly authState = signal<boolean>(false);
   private readonly authCheckDone = signal<boolean>(false);
   readonly isLoggedIn = this.authState.asReadonly();
@@ -74,7 +74,7 @@ export class AuthService extends BaseHttpClientApi {
     return this.authApi.logout().pipe(
       tap(() => {
         this.authState.set(false);
-        this.secretService.clearMasterPassword();
+        this.masterPasswordService.clearCachedMasterPassword();
         this.router.navigate(['/login']);
       }),
     );

@@ -13,23 +13,6 @@ export class SecretService {
   private crypto = inject(CryptoService);
 
   private secretKey = signal<SecretKeyPayload | null>(null);
-  private cachedMasterPassword = signal<string | null>(null);
-
-  setMasterPassword(masterPassword: string): void {
-    this.cachedMasterPassword.set(masterPassword);
-  }
-
-  getMasterPassword(): string | null {
-    return this.cachedMasterPassword();
-  }
-
-  clearMasterPassword(): void {
-    this.cachedMasterPassword.set(null);
-  }
-
-  hasMasterPassword(): boolean {
-    return this.cachedMasterPassword() !== null;
-  }
 
   update(secretId: string, secretData: FormPayload, masterPassword: string): Observable<any> {
     return this.getSecretKey().pipe(
@@ -49,8 +32,6 @@ export class SecretService {
     const encryptedPayload = await this.encryptSecretData(secretData, masterPassword, secretKey);
 
     const result = await firstValueFrom(this.secretsApi.update(secretId, encryptedPayload));
-
-    this.setMasterPassword(masterPassword);
 
     return result;
   }
@@ -79,8 +60,6 @@ export class SecretService {
       masterPassword,
       secretKey,
     );
-
-    this.setMasterPassword(masterPassword);
 
     secretData.cipherPassword = decryptedPassword;
 
@@ -119,8 +98,6 @@ export class SecretService {
   ): Promise<any> {
     const encryptedPayload = await this.encryptSecretData(secretData, masterPassword, secretKey);
     const result = await firstValueFrom(this.secretsApi.create(encryptedPayload));
-
-    this.setMasterPassword(masterPassword);
 
     return result;
   }

@@ -110,12 +110,9 @@ export class Passwords implements OnInit, OnDestroy {
   }
 
   async openSecretDetails(secretId: string): Promise<void> {
-    let master = this.secretsService.getMasterPassword();
-
-    if (!master) {
-      master = await this.masterPasswordService.requestMasterPassword('view the password');
-      if (!master) return;
-    }
+    const master = await this.masterPasswordService.requestMasterPassword('view the password');
+    if (!master)
+      return this.toastService.error('Master Password is required to view the password.');
 
     this.secretsService.getById(secretId, master).subscribe({
       next: (secret) => {
@@ -123,11 +120,11 @@ export class Passwords implements OnInit, OnDestroy {
         this.isModalOpen.set(true);
       },
       error: (error) => {
+        this.masterPasswordService.clearCachedMasterPassword();
         if (
           error instanceof IncorrectPasswordError ||
           error?.name === IncorrectPasswordError.name
         ) {
-          this.secretsService.clearMasterPassword();
           this.toastService.error('Incorrect Master Password.');
           return;
         }

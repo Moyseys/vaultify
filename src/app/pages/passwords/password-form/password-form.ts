@@ -150,6 +150,8 @@ export class PasswordFormComponent {
         this.close.emit();
       },
       error: (err) => {
+        this.masterPasswordService.clearCachedMasterPassword();
+
         this.isSaving.set(false);
         this.handleError(err);
       },
@@ -170,7 +172,8 @@ export class PasswordFormComponent {
         this.close.emit();
       },
       error: (err) => {
-        console.error('Error updating password:', err);
+        this.masterPasswordService.clearCachedMasterPassword();
+
         this.isSaving.set(false);
         this.handleError(err);
       },
