@@ -3,49 +3,54 @@ import { CryptoService } from './crypto.service';
 import { SecretKeyPayload } from '../apis/SecretKey.api';
 import { environment } from 'src/environments/environment';
 import { ToastService } from './toast.service';
+import { CryptoConfig } from '../interfaces/crypto-config.interface';
 
 @Injectable({
   providedIn: 'root',
 })
 export class SecretKeyService {
   private readonly cryptoService = inject(CryptoService);
-  private readonly toastService = inject(ToastService);
-  private readonly config = environment.crypto;
+  private readonly defaultConfig = environment.crypto;
 
-  async genSecretKey(secretKeyInput: string): Promise<SecretKeyPayload | void> {
-    const salt = this.cryptoService.generateRandomBytes(this.config.saltSize);
+  async genSecretKey(
+    secretKeyInput: string,
+    config?: CryptoConfig,
+  ): Promise<SecretKeyPayload | void> {
+    const cryptoConfig = config ?? this.defaultConfig;
+
+    const salt = this.cryptoService.generateRandomBytes(cryptoConfig.saltSize);
     const kek = await this.cryptoService.deriveKeyFromPassword(
       secretKeyInput,
       salt,
-      this.config.derivationAlgorithm,
-      this.config.iterations,
-      this.config.hash,
-      this.config.algorithm,
-      this.config.length,
+      cryptoConfig.derivationAlgorithm,
+      cryptoConfig.iterations,
+      cryptoConfig.hash,
+      cryptoConfig.algorithm,
+      cryptoConfig.length,
     );
 
     const dek = await this.cryptoService.generateNewVaultKey(
-      this.config.algorithm,
-      this.config.length,
+      cryptoConfig.algorithm,
+      cryptoConfig.length,
     );
     const { key, iv } = await this.cryptoService.wrapKey(
       dek,
       kek,
-      this.config.algorithm,
-      this.config.saltSize,
+      cryptoConfig.algorithm,
+      cryptoConfig.saltSize,
     );
 
     const saltBase64 = this.cryptoService.bufferToBase64(salt);
     const payload: SecretKeyPayload = {
       key,
-      keySize: this.config.length,
+      keySize: cryptoConfig.length,
       keyIV: iv,
       salt: saltBase64,
-      saltSize: this.config.saltSize,
-      iterations: this.config.iterations,
-      algorithm: this.config.algorithm,
-      hashAlgorithm: this.config.hash,
-      derivationAlgorithm: this.config.derivationAlgorithm,
+      saltSize: cryptoConfig.saltSize,
+      iterations: cryptoConfig.iterations,
+      algorithm: cryptoConfig.algorithm,
+      hashAlgorithm: cryptoConfig.hash,
+      derivationAlgorithm: cryptoConfig.derivationAlgorithm,
     };
     return payload;
   }

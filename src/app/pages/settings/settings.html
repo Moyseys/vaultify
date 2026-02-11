@@ -65,6 +65,22 @@
             </p>
 
             @if (!hasSecretKey()) {
+              <button
+                type="button"
+                class="settings__advanced-toggle"
+                (click)="toggleAdvancedSettings()"
+              >
+                <i
+                  class="lucide"
+                  [ngClass]="showAdvancedSettings() ? 'icon-chevron-down' : 'icon-chevron-right'"
+                  aria-hidden="true"
+                ></i>
+                Advanced Security Settings
+                @if (showAdvancedSettings()) {
+                  <span class="settings__advanced-badge">Custom</span>
+                }
+              </button>
+
               <form
                 [formGroup]="secretKeyForm"
                 (ngSubmit)="onSubmitSecretKey()"
@@ -106,7 +122,17 @@
                         <span>Secret Key is required</span>
                       }
                       @if (secretKeyForm.get('secretKey')?.errors?.['minlength']) {
-                        <span>Secret Key must be at least 6 characters</span>
+                        <span>Secret Key must be at least 12 characters</span>
+                      }
+                      @if (secretKeyForm.get('secretKey')?.errors?.['maxlength']) {
+                        <span>Secret Key must not exceed 128 characters</span>
+                      }
+                      @if (secretKeyForm.get('secretKey')?.errors?.['passwordStrength']) {
+                        <span>
+                          {{
+                            secretKeyForm.get('secretKey')?.errors?.['passwordStrength']?.message
+                          }}
+                        </span>
                       }
                     </div>
                   }
@@ -155,6 +181,152 @@
                     </div>
                   }
                 </div>
+
+                @if (showAdvancedSettings()) {
+                  <div class="settings__advanced-section" formGroupName="advancedSettings">
+                    <div class="settings__advanced-header">
+                      <h3 class="settings__advanced-title">
+                        <i class="lucide icon-settings" aria-hidden="true"></i>
+                        Encryption Configuration
+                      </h3>
+                      <p class="settings__advanced-description">
+                        Configure cryptographic parameters. Default values are recommended for most
+                        users.
+                      </p>
+                    </div>
+
+                    <div class="settings__advanced-grid">
+                      <!-- Algorithm -->
+                      <div class="form-group">
+                        <label for="algorithm" class="form-label">
+                          Encryption Algorithm
+                          <span class="settings__field-help">Algorithm for data encryption</span>
+                        </label>
+                        <select id="algorithm" app-input formControlName="algorithm">
+                          <option value="AES-GCM">AES-GCM (Recommended)</option>
+                          <option value="AES-CBC">AES-CBC</option>
+                        </select>
+                      </div>
+
+                      <!-- Hash Algorithm -->
+                      <div class="form-group">
+                        <label for="hash" class="form-label">
+                          Hash Algorithm
+                          <span class="settings__field-help">Hash function for key derivation</span>
+                        </label>
+                        <select id="hash" app-input formControlName="hash">
+                          <option value="SHA-256">SHA-256 (Recommended)</option>
+                          <option value="SHA-384">SHA-384</option>
+                          <option value="SHA-512">SHA-512</option>
+                        </select>
+                      </div>
+
+                      <!-- Derivation Algorithm -->
+                      <div class="form-group">
+                        <label for="derivationAlgorithm" class="form-label">
+                          Derivation Algorithm
+                          <span class="settings__field-help">Key derivation function (KDF)</span>
+                        </label>
+                        <select
+                          id="derivationAlgorithm"
+                          app-input
+                          formControlName="derivationAlgorithm"
+                        >
+                          <option value="PBKDF2">PBKDF2</option>
+                        </select>
+                      </div>
+
+                      <!-- Key Length -->
+                      <div class="form-group">
+                        <label for="length" class="form-label">
+                          Key Length (bits)
+                          <span class="settings__field-help">Encryption key size</span>
+                        </label>
+                        <select id="length" app-input formControlName="length">
+                          <option value="128">128 bits</option>
+                          <option value="192">192 bits</option>
+                          <option value="256">256 bits (Recommended)</option>
+                        </select>
+                        @if (
+                          secretKeyForm.get('advancedSettings.length')?.invalid &&
+                          secretKeyForm.get('advancedSettings.length')?.touched
+                        ) {
+                          <div class="error-message">
+                            <span>Key length must be at least 128 bits</span>
+                          </div>
+                        }
+                      </div>
+
+                      <!-- Iterations -->
+                      <div class="form-group">
+                        <label for="iterations" class="form-label">
+                          Iterations
+                          <span class="settings__field-help"
+                            >Higher values = slower but more secure (min: 100,000)</span
+                          >
+                        </label>
+                        <input
+                          id="iterations"
+                          type="number"
+                          app-input
+                          formControlName="iterations"
+                          min="100000"
+                          step="10000"
+                          [class.error]="
+                            secretKeyForm.get('advancedSettings.iterations')?.invalid &&
+                            secretKeyForm.get('advancedSettings.iterations')?.touched
+                          "
+                        />
+                        @if (
+                          secretKeyForm.get('advancedSettings.iterations')?.invalid &&
+                          secretKeyForm.get('advancedSettings.iterations')?.touched
+                        ) {
+                          <div class="error-message">
+                            <span>Iterations must be at least 100,000</span>
+                          </div>
+                        }
+                      </div>
+
+                      <!-- Salt Size -->
+                      <div class="form-group">
+                        <label for="saltSize" class="form-label">
+                          Salt Size (bytes)
+                          <span class="settings__field-help"
+                            >Random data added to prevent rainbow table attacks (min: 16)</span
+                          >
+                        </label>
+                        <input
+                          id="saltSize"
+                          type="number"
+                          app-input
+                          formControlName="saltSize"
+                          min="16"
+                          step="1"
+                          [class.error]="
+                            secretKeyForm.get('advancedSettings.saltSize')?.invalid &&
+                            secretKeyForm.get('advancedSettings.saltSize')?.touched
+                          "
+                        />
+                        @if (
+                          secretKeyForm.get('advancedSettings.saltSize')?.invalid &&
+                          secretKeyForm.get('advancedSettings.saltSize')?.touched
+                        ) {
+                          <div class="error-message">
+                            <span>Salt size must be at least 16 bytes</span>
+                          </div>
+                        }
+                      </div>
+                    </div>
+
+                    <div class="settings__advanced-warning">
+                      <i class="lucide icon-alert-triangle" aria-hidden="true"></i>
+                      <span
+                        >Warning: Custom settings may affect security. Only modify if you understand
+                        the implications.</span
+                      >
+                    </div>
+                  </div>
+                }
 
                 <div class="settings__form-actions">
                   <button

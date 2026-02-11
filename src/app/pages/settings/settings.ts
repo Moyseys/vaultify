@@ -12,6 +12,9 @@ import { ButtonComponent } from '@shared/components/button/button.component';
 import { InputDirective } from '@shared/components/input/input.directive';
 import { NgClass } from '@angular/common';
 import { SecretKeyService } from 'src/app/core/services/secret-key.service';
+import { CryptoConfig } from 'src/app/core/interfaces/crypto-config.interface';
+import { environment } from 'src/environments/environment';
+import { passwordStrengthValidator } from 'src/app/core/validators';
 
 @Component({
   selector: 'app-settings',
@@ -26,16 +29,38 @@ export class Settings implements OnInit {
   private readonly toastService = inject(ToastService);
   private readonly secretKeyService = inject(SecretKeyService);
 
+  private readonly defaultCryptoConfig = environment.crypto;
+
   hasSecretKey = signal(true);
   checkingSecretKey = signal(true);
   creatingSecretKey = signal(false);
   showSecretKey = signal(false);
   showConfirmSecretKey = signal(false);
+  showAdvancedSettings = signal(false);
 
   readonly secretKeyForm = this.fb.group(
     {
-      secretKey: ['', [Validators.required, Validators.minLength(6)]],
+      secretKey: [
+        '',
+        [
+          Validators.required,
+          Validators.minLength(12),
+          Validators.maxLength(128),
+          passwordStrengthValidator,
+        ],
+      ],
       confirmSecretKey: ['', [Validators.required]],
+      advancedSettings: this.fb.group({
+        algorithm: [this.defaultCryptoConfig.algorithm, [Validators.required]],
+        derivationAlgorithm: [this.defaultCryptoConfig.derivationAlgorithm, [Validators.required]],
+        hash: [this.defaultCryptoConfig.hash, [Validators.required]],
+        length: [this.defaultCryptoConfig.length, [Validators.required, Validators.min(128)]],
+        iterations: [
+          this.defaultCryptoConfig.iterations,
+          [Validators.required, Validators.min(100000)],
+        ],
+        saltSize: [this.defaultCryptoConfig.saltSize, [Validators.required, Validators.min(16)]],
+      }),
     },
     {
       validators: [this.secretKeyMatchValidator],
@@ -70,22 +95,58 @@ export class Settings implements OnInit {
     });
   }
 
+  genCryptoConfigFromForm(): CryptoConfig {
+    const advancedSettings = this.secretKeyForm.controls.advancedSettings.value;
+
+    const derivationAlgorithm = (advancedSettings.derivationAlgorithm ||
+      this.defaultCryptoConfig.derivationAlgorithm) as CryptoConfig['derivationAlgorithm'];
+    const hash = (advancedSettings.hash || this.defaultCryptoConfig.hash) as CryptoConfig['hash'];
+    const algorithm = (advancedSettings.algorithm ||
+      this.defaultCryptoConfig.algorithm) as CryptoConfig['algorithm'];
+    return {
+      algorithm,
+      derivationAlgorithm,
+      hash,
+      length: advancedSettings.length || this.defaultCryptoConfig.length,
+      iterations: advancedSettings.iterations || this.defaultCryptoConfig.iterations,
+      saltSize: advancedSettings.saltSize || this.defaultCryptoConfig.saltSize,
+    };
+  }
+
   async onSubmitSecretKey() {
     if (!this.secretKeyForm.valid) return this.secretKeyForm.markAllAsTouched();
-
     this.creatingSecretKey.set(true);
     const secretKeyValue = this.secretKeyForm.controls.secretKey.value || '';
 
+    const cryptoConfig = this.genCryptoConfigFromForm();
+
     try {
-      const payload = await this.secretKeyService.genSecretKey(secretKeyValue);
-      if (!payload) return;
+      const payload = await this.secretKeyService.genSecretKey(secretKeyValue, cryptoConfig);
+      if (!payload) {
+        this.creatingSecretKey.set(false);
+        return;
+      }
+
       return this.secretKeyApi.createSecretKey(payload).subscribe({
-        next: this.handleCreateKeySuccess.bind(this),
+        next: () => {
+          this.handleCreateKeySuccess();
+          this.clearSensitiveFormData();
+        },
         error: this.handleCreateKeyError.bind(this),
       });
     } catch (error) {
+      console.error('[SecretKey] Creation failed:', error);
       this.handleCreateKeyError();
     }
+  }
+
+  private clearSensitiveFormData(): void {
+    this.secretKeyForm.patchValue({
+      secretKey: '',
+      confirmSecretKey: '',
+    });
+    this.secretKeyForm.markAsPristine();
+    this.secretKeyForm.markAsUntouched();
   }
 
   handleCreateKeySuccess() {
@@ -95,8 +156,9 @@ export class Settings implements OnInit {
   }
 
   handleCreateKeyError() {
-    this.toastService.error('Failed to create secret key.');
+    this.toastService.error('Failed to create secret key. Please try again.');
     this.creatingSecretKey.set(false);
+    this.clearSensitiveFormData();
   }
 
   toggleSecretKeyVisibility(): void {
@@ -105,6 +167,10 @@ export class Settings implements OnInit {
 
   toggleConfirmSecretKeyVisibility(): void {
     this.showConfirmSecretKey.set(!this.showConfirmSecretKey());
+  }
+
+  toggleAdvancedSettings(): void {
+    this.showAdvancedSettings.set(!this.showAdvancedSettings());
   }
 
   get hasSecretKeyMismatch(): boolean {
