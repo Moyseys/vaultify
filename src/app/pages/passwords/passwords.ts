@@ -111,8 +111,7 @@ export class Passwords implements OnInit, OnDestroy {
 
   async openSecretDetails(secretId: string): Promise<void> {
     const master = await this.masterPasswordService.requestMasterPassword('view the password');
-    if (!master)
-      return this.toastService.error('Master Password is required to view the password.');
+    if (!master) return;
 
     this.secretsService.getById(secretId, master).subscribe({
       next: (secret) => {
