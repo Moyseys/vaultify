@@ -122,7 +122,7 @@
                         <span>Secret Key is required</span>
                       }
                       @if (secretKeyForm.get('secretKey')?.errors?.['minlength']) {
-                        <span>Secret Key must be at least 12 characters</span>
+                        <span>Secret Key must be at least 6 characters</span>
                       }
                       @if (secretKeyForm.get('secretKey')?.errors?.['maxlength']) {
                         <span>Secret Key must not exceed 128 characters</span>

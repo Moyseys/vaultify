@@ -40,15 +40,7 @@ export class Settings implements OnInit {
 
   readonly secretKeyForm = this.fb.group(
     {
-      secretKey: [
-        '',
-        [
-          Validators.required,
-          Validators.minLength(12),
-          Validators.maxLength(128),
-          passwordStrengthValidator,
-        ],
-      ],
+      secretKey: ['', [Validators.required, Validators.minLength(6), Validators.maxLength(128)]],
       confirmSecretKey: ['', [Validators.required]],
       advancedSettings: this.fb.group({
         algorithm: [this.defaultCryptoConfig.algorithm, [Validators.required]],
